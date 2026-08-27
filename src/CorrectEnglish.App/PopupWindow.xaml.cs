@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -18,6 +19,7 @@ public partial class PopupWindow : Window
 {
     private ScreenPoint _anchor;
     private string _correctedText = string.Empty;
+    private bool _isClosing;
 
     public PopupWindow()
     {
@@ -44,6 +46,25 @@ public partial class PopupWindow : Window
         _anchor = anchor;
         Show();
         Activate();
+    }
+
+    /// <summary>
+    /// Fecha a janela no maximo uma vez.
+    /// <para>
+    /// O <c>Close()</c> do WPF nao e idempotente: chamar de novo enquanto a janela esta
+    /// fechando lanca <see cref="InvalidOperationException"/>. E fechar <i>provoca</i> a
+    /// desativacao, que era justamente o nosso gatilho para fechar -- ou seja, o caminho
+    /// natural do codigo era reentrante.
+    /// </para>
+    /// </summary>
+    public void TryClose()
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        Close();
     }
 
     public void ShowLoading(string message = "Lendo o texto que voce selecionou...")
@@ -100,6 +121,18 @@ public partial class PopupWindow : Window
         base.OnSourceInitialized(e);
         SizeChanged += (_, _) => PositionNearAnchor();
         PositionNearAnchor();
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        _isClosing = true;
+
+        // Desinscreve antes de fechar. O fechamento em si dispara Deactivated, e sem isto
+        // o manipulador tentaria fechar uma janela que ja esta fechando.
+        Deactivated -= OnDeactivated;
+        PreviewKeyDown -= OnPreviewKeyDown;
+
+        base.OnClosing(e);
     }
 
     private static string Shorten(string text, int max)
@@ -181,7 +214,7 @@ public partial class PopupWindow : Window
         if (e.Key == Key.Escape)
         {
             e.Handled = true;
-            Close();
+            TryClose();
         }
     }
 
@@ -191,11 +224,11 @@ public partial class PopupWindow : Window
         // que perde o foco de proposito.
         if (!IsReplacing)
         {
-            Close();
+            TryClose();
         }
     }
 
-    private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
+    private void OnCloseClick(object sender, RoutedEventArgs e) => TryClose();
 
     private void OnReplaceClick(object sender, RoutedEventArgs e)
     {

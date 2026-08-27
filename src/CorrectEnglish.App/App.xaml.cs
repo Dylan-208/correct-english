@@ -117,7 +117,7 @@ public partial class App : Application
     {
         try
         {
-            _popup?.Close();
+            _popup?.TryClose();
 
             var popup = new PopupWindow();
             _popup = popup;
@@ -187,7 +187,11 @@ public partial class App : Application
 
             if (outcome.IsSuccess)
             {
-                popup.Close();
+                // IsReplacing continua true de proposito, e nao e reposta depois.
+                // Fechar dispara Deactivated; se a guarda fosse desligada antes disso
+                // (por exemplo num finally, que roda depois do Close), o manipulador
+                // tentaria fechar uma janela ja em fechamento e lancaria excecao.
+                popup.TryClose();
                 return;
             }
 
@@ -199,9 +203,9 @@ public partial class App : Application
         {
             popup.ShowMessage($"Erro no Replace: {ex.Message}", isError: true);
         }
-        finally
-        {
-            popup.IsReplacing = false;
-        }
+
+        // So chega aqui quando a janela permanece aberta mostrando um erro. Reabilitar o
+        // fechamento automatico deixa o usuario dispensar a janela clicando fora dela.
+        popup.IsReplacing = false;
     }
 }
