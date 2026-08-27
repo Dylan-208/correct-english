@@ -1,6 +1,6 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
-namespace CorrectEnglish.Core.Correction;
+namespace CorrectEnglish.Core.Corrections;
 
 /// <summary>
 /// Motor falso da Fase 1. Deliberadamente idiota: devolve o texto em MAIUSCULAS.

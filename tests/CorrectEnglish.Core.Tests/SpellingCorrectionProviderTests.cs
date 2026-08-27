@@ -1,4 +1,4 @@
-using CorrectEnglish.Core.Correction;
+﻿using CorrectEnglish.Core.Corrections;
 using CorrectEnglish.Core.Spelling;
 using Xunit;
 

@@ -1,6 +1,6 @@
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using CorrectEnglish.Core.Correction;
+using CorrectEnglish.Core.Corrections;
 using CorrectEnglish.Core.Spelling;
 using CorrectEnglish.Core.Translation;
 using Xunit;

@@ -1,4 +1,4 @@
-namespace CorrectEnglish.Core.Correction;
+﻿namespace CorrectEnglish.Core.Corrections;
 
 /// <summary>Registro em que o texto corrigido deve ser escrito.</summary>
 public enum Tone

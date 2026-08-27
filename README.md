@@ -25,7 +25,7 @@ Três camadas empilhadas. Nenhuma resolve sozinha, e a divisão é o que faz o a
 | Camada | Motor | Latência | Custo | O que pega |
 |---|---|---|---|---|
 | **L0** Ortografia | Hunspell `en_US` + SymSpell, embarcado | < 1 ms | **zero**, offline | `informations`, `recieve`, `alot` |
-| **L1** Gramática | LanguageTool self-hosted em `localhost` | 40–150 ms | **zero**, offline | concordância, artigo, preposição, `their`/`there` |
+| **L1** Gramática | LanguageTool em contêiner Docker | 40–150 ms | **zero**, offline | concordância, artigo, preposição, pontuação |
 | **PT** Tradução | LibreTranslate self-hosted em Docker | ~300 ms | **zero**, offline | tradução do texto corrigido para português |
 | **L2** Reescrita natural | ainda ausente — decisão aberta | — | — | saber que uma frase correta soa estrangeira |
 
@@ -66,8 +66,8 @@ O código é aberto justamente para que essas afirmações sejam verificáveis, 
 | 0 | Repositório, licença e decisões registradas em ADR | ✅ concluída |
 | 1 | Esqueleto: hook do atalho, popup, e `Replace` funcionando com correção falsa | ✅ concluída |
 | 2a | Camada L0: Hunspell embarcado — **a partir daqui o app é útil de verdade** | ✅ concluída |
-| 2b | Camada L1: LanguageTool local (gramática) | ⬜ próxima |
-| 3 | Aviso em tempo real perto do cursor + lista de permissão por app | ⬜ |
+| 2b | Camada L1: LanguageTool (gramática) + tradução para português | ✅ concluída |
+| 3 | Aviso em tempo real perto do cursor + lista de permissão por app | ⬜ próxima |
 | 4 | Distribuição: instalador, auto-update, iniciar com o Windows | ⬜ |
 | 5 | Sublinhado ondulado nativo (overlay + UI Automation) — **só se ainda fizer falta** | ⬜ a decidir |
 
@@ -90,6 +90,7 @@ As três decisões estruturais estão registradas em [`docs/adr/`](docs/adr/):
 - [0003 — Caminho do aviso em tempo real](docs/adr/0003-caminho-do-sublinhado.md)
 - [0004 — Camada L2 sem custo recorrente](docs/adr/0004-camada-l2-sem-custo-recorrente.md)
 - [0005 — Tradução com LibreTranslate self-hosted](docs/adr/0005-traducao-com-libretranslate.md)
+- [0006 — Gramática com LanguageTool, e a fronteira entre L0 e L1](docs/adr/0006-gramatica-com-languagetool.md)
 
 O plano visual completo, com mockups das telas, está em [`docs/plano.html`](docs/plano.html) — abra no navegador.
 
@@ -121,8 +122,7 @@ dotnet run --project src\CorrectEnglish.App
 
 - Windows 10 1809+ ou Windows 11
 - .NET 8 SDK
-- Docker — opcional, apenas para a tradução (camada PT)
-- Java 17+ — opcional, apenas para o servidor local do LanguageTool (camada L1, Fase 2b)
+- Docker — opcional, para a gramática (L1) e a tradução (PT). **Sem Java:** o LanguageTool roda em contêiner.
 - *Nada mais.* Sem chave de API, sem conta em serviço nenhum, sem custo.
 
 ## Licença

@@ -1,8 +1,8 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 using CorrectEnglish.Core.Spelling;
 
-namespace CorrectEnglish.Core.Correction;
+namespace CorrectEnglish.Core.Corrections;
 
 /// <summary>
 /// Camada L0 como provedor de correção: encontra palavras fora do dicionário e aplica a

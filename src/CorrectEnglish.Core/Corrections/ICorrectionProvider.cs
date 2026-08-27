@@ -1,4 +1,4 @@
-namespace CorrectEnglish.Core.Correction;
+﻿namespace CorrectEnglish.Core.Corrections;
 
 /// <summary>
 /// Contrato unico para as tres camadas do ADR 0002. A janela nao sabe (nem precisa saber)

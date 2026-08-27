@@ -1,12 +1,14 @@
-# Servidor de tradução da camada de português (ver docs/adr/0005-traducao-com-libretranslate.md).
+# Serviços locais das camadas opcionais:
+#   libretranslate -> tradução para português (ADR 0005)
+#   languagetool   -> gramática, camada L1     (ADR 0006)
 #
-#   docker compose up -d          sobe
-#   docker compose logs -f        acompanha o download dos modelos na primeira vez
+#   docker compose up -d          sobe os dois
+#   docker compose logs -f        acompanha (a primeira subida baixa imagens e modelos)
 #   docker compose down           desliga
 #
-# O app funciona sem isto -- apenas sem traduzir. Nenhuma configuração do app precisa
-# mudar: ele testa a disponibilidade a cada chamada, então subir ou descer o contêiner
-# tem efeito imediato, sem reiniciar o Correct English.
+# O app funciona sem qualquer um dos dois, e cada ausência degrada só a si mesma. Nenhuma
+# configuração do app precisa mudar: a disponibilidade é testada a cada chamada, então
+# subir ou descer um contêiner tem efeito imediato, sem reiniciar o Correct English.
 
 services:
   libretranslate:
@@ -34,3 +36,20 @@ services:
     # sobrevivem a "restart" e a reinício da máquina -- só são baixados de novo depois de
     # um "docker compose down". Para uma dependência opcional de uso pessoal, é a troca
     # certa: menos partes móveis do que acertar permissão de volume.
+
+  languagetool:
+    image: erikvl87/languagetool:latest
+    container_name: correct-english-grammar
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+    environment:
+      # Teto de heap explícito. O padrão da imagem é generoso, e numa máquina de 16 GB
+      # que também roda o LibreTranslate vale limitar. 1 GB é suficiente sem n-gramas.
+      Java_Xms: "384m"
+      Java_Xmx: "1g"
+
+      # Sem os dados de n-grama, de propósito: são vários GB e servem principalmente para
+      # pares confundíveis (their/there, its/it's). Se essa classe de erro se mostrar
+      # frequente no uso real, baixar os n-gramas é a primeira coisa a reconsiderar --
+      # ver ADR 0006.

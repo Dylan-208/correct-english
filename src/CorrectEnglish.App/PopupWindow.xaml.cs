@@ -1,8 +1,8 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using CorrectEnglish.Core.Correction;
+using CorrectEnglish.Core.Corrections;
 using CorrectEnglish.Interop.Windows;
 using WinFormsScreen = System.Windows.Forms.Screen;
 

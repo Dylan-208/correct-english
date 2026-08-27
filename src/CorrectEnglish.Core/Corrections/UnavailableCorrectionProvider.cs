@@ -1,4 +1,4 @@
-namespace CorrectEnglish.Core.Correction;
+﻿namespace CorrectEnglish.Core.Corrections;
 
 /// <summary>
 /// Provedor que não corrige nada e explica por quê.

@@ -1,6 +1,7 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Interop;
-using CorrectEnglish.Core.Correction;
+using CorrectEnglish.Core.Corrections;
+using CorrectEnglish.Core.Grammar;
 using CorrectEnglish.Core.Spelling;
 using CorrectEnglish.Core.Translation;
 using CorrectEnglish.Interop;
@@ -61,7 +62,7 @@ public partial class App : Application
                 "Correct English esta rodando",
                 "Selecione um texto e aperte Ctrl+C tres vezes.");
 
-            _ = ReportTranslatorStatusAsync();
+            _ = ReportOptionalServicesStatusAsync();
         }
         catch (Exception ex)
         {
@@ -105,12 +106,16 @@ public partial class App : Application
                 located.Value.AffixPath,
                 name: "en_US");
 
-            ICorrectionProvider spelling = new SpellingCorrectionProvider(checker);
+            // Os dois servicos em contêiner sao sempre encaixados, mesmo desligados: cada
+            // um degrada sozinho por chamada. Assim, subir o Docker com o app ja aberto faz
+            // gramatica e tradução comecarem a aparecer na hora, sem reiniciar nada.
+            var translator = CreateTranslator();
 
-            // O tradutor e sempre encaixado, mesmo com o contêiner desligado: ele degrada
-            // sozinho por chamada. Assim, subir o Docker com o app ja aberto faz a tradução
-            // comecar a aparecer na hora, sem reiniciar nada.
-            return new TranslatingCorrectionProvider(spelling, CreateTranslator());
+            var pipeline = new PipelineCorrectionProvider(
+                new SpellingCorrectionProvider(checker),                        // L0
+                new GrammarCorrectionProvider(CreateGrammarClient(), translator)); // L1
+
+            return new TranslatingCorrectionProvider(pipeline, translator);
         }
         catch (Exception ex)
         {
@@ -122,24 +127,46 @@ public partial class App : Application
     private static LibreTranslateTranslator CreateTranslator()
         => new(new Uri("http://localhost:5000"));
 
+    private static LanguageToolClient CreateGrammarClient()
+        => new(new Uri("http://localhost:8010"));
+
     /// <summary>
-    /// Avisa na bandeja se a tradução está fora do ar. Só informativo: a correção não
-    /// depende disto, e o usuário pode subir o contêiner depois sem reiniciar o app.
+    /// Avisa na bandeja se algum serviço em contêiner está fora do ar. Só informativo: a
+    /// ortografia não depende de nenhum dos dois, e o usuário pode subir os contêineres
+    /// depois sem reiniciar o app.
     /// </summary>
-    private async Task ReportTranslatorStatusAsync()
+    private async Task ReportOptionalServicesStatusAsync()
     {
         try
         {
             using var translator = CreateTranslator();
+            using var grammar = CreateGrammarClient();
 
-            if (await translator.IsAvailableAsync().ConfigureAwait(true))
+            var translatorTask = translator.IsAvailableAsync();
+            var grammarTask = grammar.IsAvailableAsync();
+
+            await Task.WhenAll(translatorTask, grammarTask).ConfigureAwait(true);
+
+            var missing = new List<string>(2);
+
+            if (!grammarTask.Result)
+            {
+                missing.Add("gramatica");
+            }
+
+            if (!translatorTask.Result)
+            {
+                missing.Add("traducao");
+            }
+
+            if (missing.Count == 0)
             {
                 return;
             }
 
             _tray?.Notify(
-                "Traducao indisponivel",
-                "A correcao de ortografia funciona. Para traduzir, rode "
+                $"Sem {string.Join(" e ", missing)}",
+                "A correcao de ortografia funciona. Para o resto, rode "
                 + "\"docker compose up -d\" na pasta do projeto.");
         }
         catch (Exception)
@@ -153,8 +180,8 @@ public partial class App : Application
             "Correct English 0.1.0 - Fase 2\n\n"
             + $"Motor de correcao: {_provider.Name}\n"
             + (_provider.RequiresNetwork ? "Usa rede.\n" : "Funciona offline, sem custo.\n")
-            + "\nEsta versao corrige ortografia. Gramatica (LanguageTool) e o aviso em\n"
-            + "tempo real chegam nas fases seguintes.\n\n"
+            + "\nCorrige ortografia, gramatica, e traduz para portugues. O aviso em\n"
+            + "tempo real enquanto voce digita chega na Fase 3.\n\n"
             + "github.com/Dylan-208/correct-english",
             "Sobre",
             MessageBoxButton.OK,

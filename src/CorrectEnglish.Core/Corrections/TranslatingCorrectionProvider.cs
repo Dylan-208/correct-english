@@ -1,7 +1,7 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using CorrectEnglish.Core.Translation;
 
-namespace CorrectEnglish.Core.Correction;
+namespace CorrectEnglish.Core.Corrections;
 
 /// <summary>
 /// Acrescenta tradução para português ao resultado de qualquer outro provedor.
