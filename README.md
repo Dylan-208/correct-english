@@ -1,0 +1,91 @@
+# Correct English
+
+Corretor de inglês que roda no Windows, para quem escreve inglês todo dia sem ser nativo.
+
+Seleciona um texto em qualquer aplicativo, aperta `Ctrl+C` três vezes, e aparece uma janelinha com:
+
+- a **tradução para português**, para conferir se o que você escreveu diz o que você quis dizer;
+- a **versão corrigida**, com a explicação de cada erro em português;
+- um botão **Replace** que troca o texto no lugar de onde você o selecionou.
+
+Enquanto você digita, palavra errada em inglês recebe um aviso em tempo real — do mesmo jeito que o Windows já faz em português.
+
+> **Status:** planejamento concluído, implementação não iniciada. Veja [as fases](#fases).
+
+---
+
+## Por que existe
+
+Corretor de português nativo do Windows funciona em todo lugar. Corretor de inglês, não — ou é pago, ou é extensão de navegador só, ou não explica *por que* você errou. Este projeto tenta resolver as três coisas de uma vez, com o código aberto para ser auditável (ver [Privacidade](#privacidade), que não é um detalhe aqui).
+
+## Como a correção funciona
+
+Três camadas empilhadas. Nenhuma resolve sozinha, e a divisão é o que faz o app não ficar lento nem caro.
+
+| Camada | Motor | Latência | Custo | O que pega |
+|---|---|---|---|---|
+| **L0** Ortografia | Hunspell `en_US` + SymSpell, embarcado | < 1 ms | grátis, offline | `informations`, `recieve`, `alot` |
+| **L1** Gramática | LanguageTool self-hosted em `localhost` | 40–150 ms | grátis, offline | concordância, artigo, preposição, `their`/`there` |
+| **L2** Significado | Claude Opus 5, Messages API, saída em JSON | 1–3 s | ~R$ 0,12/consulta | tradução, reescrita natural, explicação do erro |
+
+**L0 e L1 rodam sozinhas no seu PC, de graça, e são elas que alimentam o aviso em tempo real.** L2 é o único gasto, e só é chamada quando você aperta o atalho — nunca em segundo plano enquanto você digita.
+
+L2 é a única camada que de fato *entende*: ela sabe que `I have send the report to you` é gramaticalmente quase defensável mas soa estrangeiro, e que um nativo escreveria `I sent you the report`.
+
+## Atalhos
+
+| Ação | Atalho |
+|---|---|
+| Abrir com o texto selecionado | `Ctrl+C` `Ctrl+C` `Ctrl+C` |
+| Aplicar a correção | `Enter` |
+| Fechar sem mexer no texto | `Esc` |
+| Trocar o tom (neutro / formal / informal) | `Tab` |
+| Só traduzir, sem corrigir | `Ctrl+Shift+T` |
+
+O `Ctrl+C` triplo resolve de graça o problema mais chato: ler o texto selecionado de **qualquer** aplicativo. O texto já está no clipboard. Sem isso, seria preciso interrogar o app pelo UI Automation do Windows, que falha em Electron, terminal e editores em canvas.
+
+## Privacidade
+
+Este app usa um hook global de teclado. Tecnicamente, é a mesma API de um keylogger. Isso cria obrigações que não são opcionais:
+
+- **Lista de permissão, não de bloqueio.** Por padrão, nenhum aplicativo é observado. Você liga um por um.
+- **Nada em disco.** O buffer guarda apenas a frase que está sendo digitada, só em RAM.
+- **Zero teclas na internet.** A API do Claude é chamada apenas com o texto que *você* selecionou, sob comando explícito. O que você digita nunca sai da máquina.
+- **Campos de senha são ignorados**, detectados por `ES_PASSWORD` e pela propriedade `IsPassword` do UI Automation. Não é configurável.
+- **Chave de API no Windows Credential Manager**, nunca em arquivo de configuração.
+
+O código é aberto justamente para que essas afirmações sejam verificáveis, e não uma promessa.
+
+## Fases
+
+| | Fase | Estado |
+|---|---|---|
+| 0 | Repositório, licença e decisões registradas em ADR | ✅ concluída |
+| 1 | Esqueleto: hook do atalho, popup, e `Replace` funcionando com correção falsa | ⬜ próxima |
+| 2 | Camada L2 (Claude) com streaming e saída estruturada — **a partir daqui o app é útil** | ⬜ |
+| 3 | Camadas L0 e L1 + aviso em tempo real perto do cursor | ⬜ |
+| 4 | Distribuição: instalador, auto-update, iniciar com o Windows | ⬜ |
+| 5 | Sublinhado ondulado nativo (overlay + UI Automation) — **só se ainda fizer falta** | ⬜ a decidir |
+
+A Fase 1 valida de propósito a parte que mais quebra — guardar a janela anterior, devolver o foco, colar e restaurar o clipboard — usando uma correção fixa e falsa, antes de qualquer IA entrar na história.
+
+## Decisões
+
+As três decisões estruturais estão registradas em [`docs/adr/`](docs/adr/):
+
+- [0001 — Stack: C# / .NET 8 + WPF](docs/adr/0001-stack.md)
+- [0002 — Motor de correção em três camadas](docs/adr/0002-motor-de-correcao.md)
+- [0003 — Caminho do aviso em tempo real](docs/adr/0003-caminho-do-sublinhado.md)
+
+O plano visual completo, com mockups das telas, está em [`docs/plano.html`](docs/plano.html) — abra no navegador.
+
+## Requisitos de desenvolvimento
+
+- Windows 10 1809+ ou Windows 11
+- .NET 8 SDK
+- Chave de API da Anthropic (para a camada L2)
+- Java 17+ *(opcional)* — só se quiser rodar o LanguageTool localmente na Fase 3
+
+## Licença
+
+MIT. Veja [LICENSE](LICENSE).

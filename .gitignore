@@ -1,0 +1,57 @@
+# ---- Segredos: nada aqui pode ir para um repo público ----
+.env
+.env.*
+*.key
+*.pfx
+*.snk
+appsettings.local.json
+appsettings.Development.json
+secrets.json
+
+# ---- .NET ----
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]64/
+*.user
+*.suo
+*.userprefs
+*.cache
+*.dll
+*.exe
+*.pdb
+project.lock.json
+artifacts/
+publish/
+BenchmarkDotNet.Artifacts/
+
+# ---- Visual Studio / Rider / VS Code ----
+.vs/
+.idea/
+*.sln.docstates
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ---- Extensão de navegador (fase futura) ----
+node_modules/
+extension/dist/
+*.zip
+*.crx
+
+# ---- Dados baixados, não versionados ----
+# Dicionários Hunspell e n-gramas do LanguageTool são grandes;
+# baixados por script na primeira build.
+assets/dictionaries/
+assets/ngrams/
+tools/LanguageTool/
+
+# ---- Sistema ----
+Thumbs.db
+desktop.ini
+.DS_Store
+*.log
