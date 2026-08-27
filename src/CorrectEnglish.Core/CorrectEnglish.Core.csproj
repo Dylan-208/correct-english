@@ -6,4 +6,10 @@
     <Description>Camadas de correcao e logica pura, sem dependencia de Windows.</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Port gerenciado do Hunspell (MPL-2.0). Mesmo motor de ortografia do LibreOffice,
+         Firefox e Chrome, sem binario nativo para embarcar. -->
+    <PackageReference Include="WeCantSpell.Hunspell" Version="7.0.1" />
+  </ItemGroup>
+
 </Project>

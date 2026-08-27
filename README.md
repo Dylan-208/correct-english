@@ -64,7 +64,8 @@ O código é aberto justamente para que essas afirmações sejam verificáveis, 
 |---|---|---|
 | 0 | Repositório, licença e decisões registradas em ADR | ✅ concluída |
 | 1 | Esqueleto: hook do atalho, popup, e `Replace` funcionando com correção falsa | ✅ concluída |
-| 2 | Camadas L0 e L1: Hunspell + LanguageTool local — **a partir daqui o app é útil** | ⬜ próxima |
+| 2a | Camada L0: Hunspell embarcado — **a partir daqui o app é útil de verdade** | ✅ concluída |
+| 2b | Camada L1: LanguageTool local (gramática) | ⬜ próxima |
 | 3 | Aviso em tempo real perto do cursor + lista de permissão por app | ⬜ |
 | 4 | Distribuição: instalador, auto-update, iniciar com o Windows | ⬜ |
 | 5 | Sublinhado ondulado nativo (overlay + UI Automation) — **só se ainda fizer falta** | ⬜ a decidir |
@@ -89,11 +90,28 @@ As três decisões estruturais estão registradas em [`docs/adr/`](docs/adr/):
 
 O plano visual completo, com mockups das telas, está em [`docs/plano.html`](docs/plano.html) — abra no navegador.
 
+## Rodando localmente
+
+```powershell
+# 1. Baixa o dicionário Hunspell en_US (2 arquivos, ~1 MB).
+#    Não é versionado: é dado de terceiro, com licença própria.
+.\scripts\get-dictionaries.ps1
+
+# 2. Compila e testa
+dotnet build CorrectEnglish.sln
+dotnet test tests\CorrectEnglish.Core.Tests
+
+# 3. Roda (fica na bandeja do sistema)
+dotnet run --project src\CorrectEnglish.App
+```
+
+O app funciona sem o dicionário — ele apenas informa na própria janela que a camada de ortografia está indisponível, e diz qual script rodar. Nenhum caso especial espalhado pelo código: quem cuida disso é um `UnavailableCorrectionProvider` que implementa a mesma interface dos outros motores.
+
 ## Requisitos de desenvolvimento
 
 - Windows 10 1809+ ou Windows 11
 - .NET 8 SDK
-- Java 17+ — para o servidor local do LanguageTool (camada L1, a partir da Fase 2)
+- Java 17+ — apenas para o servidor local do LanguageTool (camada L1, Fase 2b)
 - *Nada mais.* Sem chave de API, sem conta em serviço nenhum, sem custo.
 
 ## Licença

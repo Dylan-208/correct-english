@@ -50,6 +50,25 @@ C, D e E foram todos adiados por motivos diferentes:
   perfeito. Mas é C++ COM puro, precisa ser assinada, aparece na barra de idiomas e pode conflitar
   com IMEs instalados.
 
+## Evidência da Fase 1 — 27/08/2026
+
+A Fase 1 usou `GetGUIThreadInfo` para posicionar a janela do popup perto do cursor. Isso
+funcionou como um teste antecipado e gratuito da premissa central do caminho B, e o
+resultado foi melhor do que a estimativa acima:
+
+**O caret foi localizado corretamente em todos os aplicativos testados** — Bloco de Notas,
+Chrome, Slack, WhatsApp, Word e VS Code. Inclusive nos três baseados em Electron, que era
+onde eu esperava falha (o Chromium mantém uma posição de caret para suporte a IME, o que
+provavelmente explica).
+
+Consequência: a viabilidade do caminho B sobe de "alta, mas sem posicionamento preciso"
+para **confirmada na prática nos apps que importam**. O aviso em tempo real perto do cursor
+deixa de ser um plano B modesto e passa a ser uma solução legítima.
+
+Isso **não** eleva o caminho D (overlay com sublinhado ondulado): saber onde está o caret é
+muito mais fácil do que saber o retângulo de cada palavra errada na tela. São problemas
+diferentes, e só o primeiro foi resolvido.
+
 ## Reavaliação
 
 Depois de **um mês de uso diário real**, responder: o aviso perto do caret foi suficiente, ou fez

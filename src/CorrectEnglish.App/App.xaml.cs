@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Interop;
 using CorrectEnglish.Core.Correction;
+using CorrectEnglish.Core.Spelling;
 using CorrectEnglish.Interop;
 using CorrectEnglish.Interop.Clipboard;
 using CorrectEnglish.Interop.Keyboard;
@@ -18,9 +19,9 @@ public partial class App : Application
 {
     private readonly ClipboardService _clipboard = new();
 
-    // Fase 1: motor falso de proposito. A Fase 2 troca esta linha e nada mais --
-    // e exatamente por isso que ICorrectionProvider existe.
-    private readonly ICorrectionProvider _provider = new FakeCorrectionProvider();
+    // Fase 2: camada L0 (Hunspell). Carregado no construtor de proposito -- gastar ~200 ms
+    // na inicializacao de um app de bandeja e melhor do que atrasar o primeiro Ctrl+C x3.
+    private readonly ICorrectionProvider _provider = CreateProvider();
 
     private TextReplacementService? _replacer;
     private TripleCopyWatcher? _watcher;
@@ -56,7 +57,7 @@ public partial class App : Application
             _watcher.Start();
 
             _tray.Notify(
-                "Correct English esta rodando",
+                $"Correct English esta rodando ({_provider.Name})",
                 "Selecione um texto e aperte Ctrl+C tres vezes.");
         }
         catch (Exception ex)
@@ -77,12 +78,46 @@ public partial class App : Application
         base.OnExit(e);
     }
 
-    private static void ShowAbout()
+    /// <summary>
+    /// Monta a camada de correcao. Quando o dicionario nao esta instalado, devolve um
+    /// provedor que explica isso na propria janela, em vez de o app falhar em silencio
+    /// ou de o codigo se encher de casos especiais.
+    /// </summary>
+    private static ICorrectionProvider CreateProvider()
+    {
+        var located = DictionaryLocator.TryLocate();
+
+        if (located is null)
+        {
+            return new UnavailableCorrectionProvider(
+                "O dicionario en_US nao foi encontrado. Rode "
+                + "scripts\\get-dictionaries.ps1 para baixa-lo (2 arquivos, ~1 MB) "
+                + "e reinicie o app.");
+        }
+
+        try
+        {
+            var checker = HunspellSpellChecker.FromFiles(
+                located.Value.DictionaryPath,
+                located.Value.AffixPath,
+                name: "en_US");
+
+            return new SpellingCorrectionProvider(checker);
+        }
+        catch (Exception ex)
+        {
+            return new UnavailableCorrectionProvider(
+                $"O dicionario foi encontrado mas nao pode ser carregado: {ex.Message}");
+        }
+    }
+
+    private void ShowAbout()
         => MessageBox.Show(
-            "Correct English 0.1.0 - Fase 1\n\n"
-            + "O motor de correcao desta versao e falso de proposito: ele so passa o texto\n"
-            + "para MAIUSCULAS. O objetivo e provar que o atalho, a janela e o Replace\n"
-            + "funcionam nos aplicativos que voce usa de verdade.\n\n"
+            "Correct English 0.1.0 - Fase 2\n\n"
+            + $"Motor de correcao: {_provider.Name}\n"
+            + (_provider.RequiresNetwork ? "Usa rede.\n" : "Funciona offline, sem custo.\n")
+            + "\nEsta versao corrige ortografia. Gramatica (LanguageTool) e o aviso em\n"
+            + "tempo real chegam nas fases seguintes.\n\n"
             + "github.com/Dylan-208/correct-english",
             "Sobre",
             MessageBoxButton.OK,
