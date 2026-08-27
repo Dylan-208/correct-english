@@ -63,13 +63,21 @@ O código é aberto justamente para que essas afirmações sejam verificáveis, 
 | | Fase | Estado |
 |---|---|---|
 | 0 | Repositório, licença e decisões registradas em ADR | ✅ concluída |
-| 1 | Esqueleto: hook do atalho, popup, e `Replace` funcionando com correção falsa | 🟡 em andamento |
-| 2 | Camadas L0 e L1: Hunspell + LanguageTool local — **a partir daqui o app é útil** | ⬜ |
+| 1 | Esqueleto: hook do atalho, popup, e `Replace` funcionando com correção falsa | ✅ concluída |
+| 2 | Camadas L0 e L1: Hunspell + LanguageTool local — **a partir daqui o app é útil** | ⬜ próxima |
 | 3 | Aviso em tempo real perto do cursor + lista de permissão por app | ⬜ |
 | 4 | Distribuição: instalador, auto-update, iniciar com o Windows | ⬜ |
 | 5 | Sublinhado ondulado nativo (overlay + UI Automation) — **só se ainda fizer falta** | ⬜ a decidir |
 
-A Fase 1 valida de propósito a parte que mais quebra — guardar a janela anterior, devolver o foco, colar e restaurar o clipboard — usando uma correção fixa e falsa, antes de qualquer IA entrar na história.
+A Fase 1 valida de propósito a parte que mais quebra — guardar a janela anterior, devolver o foco, colar e restaurar o clipboard — usando uma correção fixa e falsa, antes de qualquer motor de correção entrar na história.
+
+### Resultado da Fase 1 — 27/08/2026
+
+Testada manualmente com o motor falso (texto vira MAIÚSCULAS) em **Bloco de Notas, Google Chrome, Slack, WhatsApp, Word e VS Code**. O `Replace` funcionou em todos, o `Ctrl+C` normal continuou intacto, e o clipboard foi restaurado corretamente após a troca.
+
+Isso importa mais do que parece: significa que a mecânica funciona tanto em Win32 clássico quanto em Electron e no Office — as três famílias em que esse tipo de app costuma falhar. O caminho A do [ADR 0003](docs/adr/0003-caminho-do-sublinhado.md) está confirmado na prática, não só no papel.
+
+Um bug real apareceu no caminho: o fechamento da janela era reentrante por construção — fechar provocava a desativação, e a desativação era o gatilho de fechar. Corrigido na estrutura, não só no sintoma (commit `378957e`).
 
 ## Decisões
 
