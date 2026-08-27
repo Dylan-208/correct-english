@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Interop;
 using CorrectEnglish.Core.Correction;
 using CorrectEnglish.Core.Spelling;
+using CorrectEnglish.Core.Translation;
 using CorrectEnglish.Interop;
 using CorrectEnglish.Interop.Clipboard;
 using CorrectEnglish.Interop.Keyboard;
@@ -57,8 +58,10 @@ public partial class App : Application
             _watcher.Start();
 
             _tray.Notify(
-                $"Correct English esta rodando ({_provider.Name})",
+                "Correct English esta rodando",
                 "Selecione um texto e aperte Ctrl+C tres vezes.");
+
+            _ = ReportTranslatorStatusAsync();
         }
         catch (Exception ex)
         {
@@ -102,12 +105,46 @@ public partial class App : Application
                 located.Value.AffixPath,
                 name: "en_US");
 
-            return new SpellingCorrectionProvider(checker);
+            ICorrectionProvider spelling = new SpellingCorrectionProvider(checker);
+
+            // O tradutor e sempre encaixado, mesmo com o contêiner desligado: ele degrada
+            // sozinho por chamada. Assim, subir o Docker com o app ja aberto faz a tradução
+            // comecar a aparecer na hora, sem reiniciar nada.
+            return new TranslatingCorrectionProvider(spelling, CreateTranslator());
         }
         catch (Exception ex)
         {
             return new UnavailableCorrectionProvider(
                 $"O dicionario foi encontrado mas nao pode ser carregado: {ex.Message}");
+        }
+    }
+
+    private static LibreTranslateTranslator CreateTranslator()
+        => new(new Uri("http://localhost:5000"));
+
+    /// <summary>
+    /// Avisa na bandeja se a tradução está fora do ar. Só informativo: a correção não
+    /// depende disto, e o usuário pode subir o contêiner depois sem reiniciar o app.
+    /// </summary>
+    private async Task ReportTranslatorStatusAsync()
+    {
+        try
+        {
+            using var translator = CreateTranslator();
+
+            if (await translator.IsAvailableAsync().ConfigureAwait(true))
+            {
+                return;
+            }
+
+            _tray?.Notify(
+                "Traducao indisponivel",
+                "A correcao de ortografia funciona. Para traduzir, rode "
+                + "\"docker compose up -d\" na pasta do projeto.");
+        }
+        catch (Exception)
+        {
+            // Um aviso de bandeja que falha nao merece atrapalhar a inicializacao.
         }
     }
 

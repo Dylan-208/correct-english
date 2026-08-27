@@ -1,0 +1,36 @@
+# Servidor de tradução da camada de português (ver docs/adr/0005-traducao-com-libretranslate.md).
+#
+#   docker compose up -d          sobe
+#   docker compose logs -f        acompanha o download dos modelos na primeira vez
+#   docker compose down           desliga
+#
+# O app funciona sem isto -- apenas sem traduzir. Nenhuma configuração do app precisa
+# mudar: ele testa a disponibilidade a cada chamada, então subir ou descer o contêiner
+# tem efeito imediato, sem reiniciar o Correct English.
+
+services:
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: correct-english-translator
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+
+    # Deliberadamente mínimo. A primeira versão deste arquivo passava também
+    # LT_DISABLE_WEB_UI e LT_UPDATE_MODELS, e o contêiner entrava em loop de reinício
+    # com "gunicorn: error: argument -w/--workers: expected one argument" -- o entrypoint
+    # monta a linha de comando do gunicorn a partir do ambiente, e variáveis booleanas
+    # com valor textual quebram esse parsing. Não acrescente variável aqui sem checar
+    # o log depois.
+    environment:
+      # Carrega só o par inglês/português em vez de ~50 idiomas. Corta o download de
+      # alguns GB para algumas centenas de MB, e o uso de RAM na mesma proporção.
+      LT_LOAD_ONLY: "en,pt"
+
+    # Sem volume nomeado, de propósito. Montar um volume em
+    # /home/libretranslate/.local/share/argos-translate faz o contêiner morrer com
+    # PermissionError: o volume nasce pertencendo ao root e o processo roda como usuário
+    # sem privilégio. Os modelos ficam na camada de escrita do próprio contêiner, então
+    # sobrevivem a "restart" e a reinício da máquina -- só são baixados de novo depois de
+    # um "docker compose down". Para uma dependência opcional de uso pessoal, é a troca
+    # certa: menos partes móveis do que acertar permissão de volume.

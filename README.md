@@ -26,7 +26,8 @@ Três camadas empilhadas. Nenhuma resolve sozinha, e a divisão é o que faz o a
 |---|---|---|---|---|
 | **L0** Ortografia | Hunspell `en_US` + SymSpell, embarcado | < 1 ms | **zero**, offline | `informations`, `recieve`, `alot` |
 | **L1** Gramática | LanguageTool self-hosted em `localhost` | 40–150 ms | **zero**, offline | concordância, artigo, preposição, `their`/`there` |
-| **L2** Significado | opcional, desligado por padrão | 1–10 s | zero ou pago, você escolhe | tradução e reescrita natural |
+| **PT** Tradução | LibreTranslate self-hosted em Docker | ~300 ms | **zero**, offline | tradução do texto corrigido para português |
+| **L2** Reescrita natural | ainda ausente — decisão aberta | — | — | saber que uma frase correta soa estrangeira |
 
 **A configuração padrão do app não tem custo recorrente e funciona 100% offline.** L0 e L1 rodam no seu PC, de graça e sem limite, e são elas que alimentam o aviso em tempo real.
 
@@ -87,6 +88,8 @@ As três decisões estruturais estão registradas em [`docs/adr/`](docs/adr/):
 - [0001 — Stack: C# / .NET 8 + WPF](docs/adr/0001-stack.md)
 - [0002 — Motor de correção em três camadas](docs/adr/0002-motor-de-correcao.md)
 - [0003 — Caminho do aviso em tempo real](docs/adr/0003-caminho-do-sublinhado.md)
+- [0004 — Camada L2 sem custo recorrente](docs/adr/0004-camada-l2-sem-custo-recorrente.md)
+- [0005 — Tradução com LibreTranslate self-hosted](docs/adr/0005-traducao-com-libretranslate.md)
 
 O plano visual completo, com mockups das telas, está em [`docs/plano.html`](docs/plano.html) — abra no navegador.
 
@@ -97,21 +100,29 @@ O plano visual completo, com mockups das telas, está em [`docs/plano.html`](doc
 #    Não é versionado: é dado de terceiro, com licença própria.
 .\scripts\get-dictionaries.ps1
 
-# 2. Compila e testa
+# 2. Sobe o servidor de tradução (opcional). Primeira vez baixa a imagem
+#    e os modelos en<->pt; acompanhe com "docker compose logs -f".
+docker compose up -d
+
+# 3. Compila e testa
 dotnet build CorrectEnglish.sln
 dotnet test tests\CorrectEnglish.Core.Tests
 
-# 3. Roda (fica na bandeja do sistema)
+# 4. Roda (fica na bandeja do sistema)
 dotnet run --project src\CorrectEnglish.App
 ```
 
-O app funciona sem o dicionário — ele apenas informa na própria janela que a camada de ortografia está indisponível, e diz qual script rodar. Nenhum caso especial espalhado pelo código: quem cuida disso é um `UnavailableCorrectionProvider` que implementa a mesma interface dos outros motores.
+**As duas dependências externas são opcionais, e cada ausência degrada só a si mesma:**
+
+- **Sem o dicionário**, a janela explica que a ortografia está indisponível e diz qual script rodar. Não há caso especial espalhado pelo código — quem cuida disso é um `UnavailableCorrectionProvider` que implementa a mesma interface dos outros motores.
+- **Sem o contêiner de tradução**, a correção continua funcionando e a seção de português simplesmente não aparece. A disponibilidade é verificada a cada chamada, não na inicialização: subir o Docker com o app já aberto faz a tradução começar a aparecer na hora, sem reiniciar nada.
 
 ## Requisitos de desenvolvimento
 
 - Windows 10 1809+ ou Windows 11
 - .NET 8 SDK
-- Java 17+ — apenas para o servidor local do LanguageTool (camada L1, Fase 2b)
+- Docker — opcional, apenas para a tradução (camada PT)
+- Java 17+ — opcional, apenas para o servidor local do LanguageTool (camada L1, Fase 2b)
 - *Nada mais.* Sem chave de API, sem conta em serviço nenhum, sem custo.
 
 ## Licença
