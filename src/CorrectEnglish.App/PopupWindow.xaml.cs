@@ -94,10 +94,17 @@ public partial class PopupWindow : Window
 
         OriginalLabel.Text = $"SELECIONADO  ·  {wordCount} PALAVRAS";
         OriginalText.Text = Shorten(result.OriginalText, 400);
-        TranslationText.Text = string.IsNullOrWhiteSpace(result.TranslationPt)
-            ? "—"
-            : result.TranslationPt;
         CorrectedText.Text = result.CorrectedText;
+
+        // A camada de ortografia nao traduz. Em vez de mostrar um campo vazio -- que
+        // parece defeito -- a secao inteira desaparece quando nao ha traducao.
+        var hasTranslation = !string.IsNullOrWhiteSpace(result.TranslationPt);
+        TranslationSection.Visibility = hasTranslation ? Visibility.Visible : Visibility.Collapsed;
+
+        if (hasTranslation)
+        {
+            TranslationText.Text = result.TranslationPt;
+        }
 
         WhyList.ItemsSource = result.Corrections
             .Select(c => new WhyItem(Describe(c.Kind), c.Why))

@@ -70,7 +70,7 @@
 
         <!-- estado: carregando -->
         <StackPanel x:Name="LoadingPanel" Visibility="Collapsed">
-          <TextBlock Style="{StaticResource SectionLabel}" Text="LENDO A SELECAO" />
+          <TextBlock Style="{StaticResource SectionLabel}" Text="LENDO A SELEÇÃO" />
           <TextBlock x:Name="LoadingText" Style="{StaticResource QuotedText}"
                      Text="Um instante..." />
         </StackPanel>
@@ -93,13 +93,15 @@
             </Border>
           </StackPanel>
 
-          <StackPanel Margin="0,0,0,15">
-            <TextBlock Style="{StaticResource SectionLabel}" Text="PORTUGUES" />
+          <!-- Oculta quando o motor ativo nao traduz. Um campo vazio prometendo traducao
+               parece defeito; ausencia de campo e so ausencia de recurso. -->
+          <StackPanel x:Name="TranslationSection" Margin="0,0,0,15" Visibility="Collapsed">
+            <TextBlock Style="{StaticResource SectionLabel}" Text="PORTUGUÊS" />
             <TextBlock x:Name="TranslationText" Style="{StaticResource BodyText}" />
           </StackPanel>
 
           <StackPanel Margin="0,0,0,15">
-            <TextBlock Style="{StaticResource SectionLabel}" Text="CORRECAO" />
+            <TextBlock Style="{StaticResource SectionLabel}" Text="CORREÇÃO" />
             <Border Background="{StaticResource OkSoft}" CornerRadius="6" Padding="11,8">
               <TextBlock x:Name="CorrectedText" Style="{StaticResource BodyText}"
                          FontSize="14.5" />
@@ -125,7 +127,7 @@
           </StackPanel>
 
           <StackPanel x:Name="WhySection">
-            <TextBlock Style="{StaticResource SectionLabel}" Text="POR QUE" />
+            <TextBlock Style="{StaticResource SectionLabel}" Text="POR QUÊ" />
             <ItemsControl x:Name="WhyList">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
