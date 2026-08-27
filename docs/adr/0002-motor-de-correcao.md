@@ -1,7 +1,13 @@
 # ADR 0002 — Motor de correção em três camadas
 
 - **Data:** 2026-08-27
-- **Status:** aceita
+- **Status:** aceita; a definição da camada L2 foi substituída pela
+  [ADR 0004](0004-camada-l2-sem-custo-recorrente.md)
+
+> **Nota de revisão (mesmo dia).** A estrutura de três camadas e a regra de que a camada de IA
+> nunca roda em segundo plano continuam valendo — são a espinha do projeto. O que mudou foi
+> *quem* implementa a L2: assumimos que o custo da API poderia sair de uma assinatura já paga,
+> e não pode. Ver ADR 0004. As seções sobre L0 e L1 abaixo seguem válidas na íntegra.
 
 ## Contexto
 

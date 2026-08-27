@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>CorrectEnglish.Interop</RootNamespace>
+    <Description>Hook de teclado, clipboard, foco de janela e envio de teclas.</Description>
+    <!-- Usado apenas por System.Windows.Clipboard, que resolve o dance de memoria
+         global do clipboard Win32 melhor do que valeria reimplementar aqui. -->
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CorrectEnglish.Core\CorrectEnglish.Core.csproj" />
+  </ItemGroup>
+
+</Project>

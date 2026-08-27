@@ -24,13 +24,15 @@ Três camadas empilhadas. Nenhuma resolve sozinha, e a divisão é o que faz o a
 
 | Camada | Motor | Latência | Custo | O que pega |
 |---|---|---|---|---|
-| **L0** Ortografia | Hunspell `en_US` + SymSpell, embarcado | < 1 ms | grátis, offline | `informations`, `recieve`, `alot` |
-| **L1** Gramática | LanguageTool self-hosted em `localhost` | 40–150 ms | grátis, offline | concordância, artigo, preposição, `their`/`there` |
-| **L2** Significado | Claude Opus 5, Messages API, saída em JSON | 1–3 s | ~R$ 0,12/consulta | tradução, reescrita natural, explicação do erro |
+| **L0** Ortografia | Hunspell `en_US` + SymSpell, embarcado | < 1 ms | **zero**, offline | `informations`, `recieve`, `alot` |
+| **L1** Gramática | LanguageTool self-hosted em `localhost` | 40–150 ms | **zero**, offline | concordância, artigo, preposição, `their`/`there` |
+| **L2** Significado | opcional, desligado por padrão | 1–10 s | zero ou pago, você escolhe | tradução e reescrita natural |
 
-**L0 e L1 rodam sozinhas no seu PC, de graça, e são elas que alimentam o aviso em tempo real.** L2 é o único gasto, e só é chamada quando você aperta o atalho — nunca em segundo plano enquanto você digita.
+**A configuração padrão do app não tem custo recorrente e funciona 100% offline.** L0 e L1 rodam no seu PC, de graça e sem limite, e são elas que alimentam o aviso em tempo real.
 
-L2 é a única camada que de fato *entende*: ela sabe que `I have send the report to you` é gramaticalmente quase defensável mas soa estrangeiro, e que um nativo escreveria `I sent you the report`.
+A API REST do LanguageTool já devolve **a explicação da regra violada**, não só a correção. Essas mensagens vêm em inglês, mas o conjunto de regras é finito: o app traduz cada mensagem na primeira vez que ela aparece e guarda em cache. Depois de um mês, o cache cobre os erros que *você* comete de verdade — que são poucos e repetidos.
+
+O que as regras **não** fazem: saber que `I have sent the report to you` está correto mas soa estrangeiro, e que um nativo escreveria `I sent you the report`. Isso exige um modelo que entenda a frase, e é o papel da camada L2 opcional — LLM local via Ollama, ou a API do Claude com chave própria. Ver [ADR 0004](docs/adr/0004-camada-l2-sem-custo-recorrente.md).
 
 ## Atalhos
 
@@ -61,9 +63,9 @@ O código é aberto justamente para que essas afirmações sejam verificáveis, 
 | | Fase | Estado |
 |---|---|---|
 | 0 | Repositório, licença e decisões registradas em ADR | ✅ concluída |
-| 1 | Esqueleto: hook do atalho, popup, e `Replace` funcionando com correção falsa | ⬜ próxima |
-| 2 | Camada L2 (Claude) com streaming e saída estruturada — **a partir daqui o app é útil** | ⬜ |
-| 3 | Camadas L0 e L1 + aviso em tempo real perto do cursor | ⬜ |
+| 1 | Esqueleto: hook do atalho, popup, e `Replace` funcionando com correção falsa | 🟡 em andamento |
+| 2 | Camadas L0 e L1: Hunspell + LanguageTool local — **a partir daqui o app é útil** | ⬜ |
+| 3 | Aviso em tempo real perto do cursor + lista de permissão por app | ⬜ |
 | 4 | Distribuição: instalador, auto-update, iniciar com o Windows | ⬜ |
 | 5 | Sublinhado ondulado nativo (overlay + UI Automation) — **só se ainda fizer falta** | ⬜ a decidir |
 
@@ -83,8 +85,8 @@ O plano visual completo, com mockups das telas, está em [`docs/plano.html`](doc
 
 - Windows 10 1809+ ou Windows 11
 - .NET 8 SDK
-- Chave de API da Anthropic (para a camada L2)
-- Java 17+ *(opcional)* — só se quiser rodar o LanguageTool localmente na Fase 3
+- Java 17+ — para o servidor local do LanguageTool (camada L1, a partir da Fase 2)
+- *Nada mais.* Sem chave de API, sem conta em serviço nenhum, sem custo.
 
 ## Licença
 

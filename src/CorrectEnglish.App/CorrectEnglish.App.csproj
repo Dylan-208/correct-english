@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>CorrectEnglish</RootNamespace>
+    <AssemblyName>CorrectEnglish.App</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <!-- WinForms entra apenas pelo NotifyIcon (bandeja) e pelo Screen (area de trabalho
+         do monitor). Ambos vem no SDK, entao a Fase 1 nao tem nenhuma dependencia externa. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CorrectEnglish.Core\CorrectEnglish.Core.csproj" />
+    <ProjectReference Include="..\CorrectEnglish.Interop\CorrectEnglish.Interop.csproj" />
+  </ItemGroup>
+
+</Project>
