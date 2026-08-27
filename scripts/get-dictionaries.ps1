@@ -20,11 +20,21 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$Destination = (Join-Path $PSScriptRoot '..\assets\dictionaries'),
+    [string]$Destination,
     [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
+
+# $PSScriptRoot chega vazio quando avaliado no bloco param() no PowerShell 5.1, entao o
+# destino padrao e resolvido aqui, com $MyInvocation como reserva.
+if ([string]::IsNullOrWhiteSpace($Destination)) {
+    $scriptDirectory = $PSScriptRoot
+    if ([string]::IsNullOrWhiteSpace($scriptDirectory)) {
+        $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    }
+    $Destination = Join-Path $scriptDirectory '..\assets\dictionaries'
+}
 
 $sources = @(
     @{
