@@ -5,6 +5,13 @@ using CorrectEnglish.Core.Correction;
 using CorrectEnglish.Interop.Windows;
 using WinFormsScreen = System.Windows.Forms.Screen;
 
+// Mesma razao do App.xaml.cs: WPF e WinForms coexistem no projeto, entao os tipos
+// com nome repetido precisam ser desambiguados em favor do WPF.
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using Clipboard = System.Windows.Clipboard;
+using Brush = System.Windows.Media.Brush;
+using Point = System.Windows.Point;
+
 namespace CorrectEnglish;
 
 public partial class PopupWindow : Window

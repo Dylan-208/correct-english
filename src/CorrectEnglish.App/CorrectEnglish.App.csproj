@@ -10,7 +10,11 @@
          do monitor). Ambos vem no SDK, entao a Fase 1 nao tem nenhuma dependencia externa. -->
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <!-- WFAC010: o analisador do WinForms quer que o DPI seja configurado por
+         ApplicationHighDpiMode em vez do manifesto. Aqui o conselho nao se aplica: este e
+         um app WPF que so usa WinForms para o icone de bandeja, e o WPF le PerMonitorV2
+         do manifesto. Mover para a propriedade do WinForms nao configuraria o WPF. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

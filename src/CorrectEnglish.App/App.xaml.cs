@@ -6,6 +6,12 @@ using CorrectEnglish.Interop.Clipboard;
 using CorrectEnglish.Interop.Keyboard;
 using CorrectEnglish.Interop.Windows;
 
+// O projeto usa WPF e WinForms juntos (o NotifyIcon da bandeja e o Screen vem do WinForms),
+// e os dois namespaces entram por ImplicitUsings. Estes aliases resolvem a ambiguidade
+// sempre em favor do WPF, que e onde a UI vive.
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
+
 namespace CorrectEnglish;
 
 public partial class App : Application
